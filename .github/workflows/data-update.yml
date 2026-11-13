@@ -1,0 +1,90 @@
+name: Propose dataset updates
+
+on:
+  schedule:
+    - cron: '23 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      create_pr:
+        description: Create or update the dedicated dataset pull request
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dataset-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Download, validate and compare
+        id: data
+        run: |
+          npm run data:update -- --report "$RUNNER_TEMP/dataset-report.json"
+          node --input-type=module <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          const report = JSON.parse(readFileSync(`${process.env.RUNNER_TEMP}/dataset-report.json`));
+          appendFileSync(process.env.GITHUB_OUTPUT, `changed=${report.changed}\n`);
+          NODE
+      - name: Include the next patch version in the dataset proposal
+        if: steps.data.outputs.changed == 'true'
+        run: |
+          npm version patch --no-git-tag-version --ignore-scripts
+          node --input-type=module <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          const { name, version } = JSON.parse(readFileSync('package.json'));
+          appendFileSync(`${process.env.RUNNER_TEMP}/dataset-report.json.md`, `\nProposed package: ${name}@${version}. Publication after merge requires the separate release workflow to be enabled.\n`);
+          NODE
+      - name: Verify data and compatibility
+        if: steps.data.outputs.changed == 'true'
+        run: |
+          npm run data:verify
+          npm test
+          npm run type-check
+          npm run lint
+          npm run build
+          npm run test:build
+          npm run test:package
+          git diff --check
+          printf '\nChecks passed: data verification, unit/equivalence tests, type checking, lint, build/watch regeneration, packed CJS/ESM/browser consumers and git diff whitespace checks.\n' >> "$RUNNER_TEMP/dataset-report.json.md"
+      - name: Summarize the result, including blocked updates
+        if: always()
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, appendFileSync, existsSync } from 'node:fs';
+          const path = `${process.env.RUNNER_TEMP}/dataset-report.json.md`;
+          if (existsSync(path)) appendFileSync(process.env.GITHUB_STEP_SUMMARY, readFileSync(path));
+          NODE
+      - name: Preserve full change reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dataset-change-report
+          path: |
+            ${{ runner.temp }}/dataset-report.json
+            ${{ runner.temp }}/dataset-report.json.md
+          if-no-files-found: ignore
+      - name: Propose a maintainer-reviewed update
+        if: steps.data.outputs.changed == 'true' && (inputs.create_pr == true || (github.event_name == 'schedule' && vars.ENABLE_DATA_UPDATE_PRS == 'true'))
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: node scripts/data/propose-pr.mjs

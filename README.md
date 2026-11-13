@@ -1,6 +1,12 @@
-# Italian CAP Comuni Province
+# Italian CAP Comuni Province — maintained fork
 
 🇮🇹 **Complete TypeScript library for Italian locations: municipalities, provinces, postal codes with advanced search and autocomplete**
+
+This is the personal fork maintained by [marlenesco](https://github.com/marlenesco),
+based on [SpritzCoder's original project](https://github.com/spritzcoder/italian-cap-comuni-province).
+It uses the separate npm name `@marlenesco/italian-cap-comuni-province`; the original
+package and its ownership remain independent. Version **1.2.0** is prepared for the
+first scoped release and has **not been published yet**.
 
 A lightweight, performant TypeScript library providing access to all Italian municipalities, provinces, and regions with intelligent search capabilities, CAP validation, and autocomplete support.
 
@@ -12,7 +18,7 @@ A lightweight, performant TypeScript library providing access to all Italian mun
 - 🎯 **TypeScript Native**: Full type safety and IntelliSense support
 - 📱 **Zero Dependencies**: No external libraries required
 - 🌐 **Dual ESM/CJS**: Supports both module formats
-- 🔄 **Always Updated**: Data synced with official ISTAT sources
+- 🔄 **Dataset Maintenance**: Reviewable updates from Garda Informatica
 - 🎯 **Form Helpers**: Deduplicated data perfect for dropdowns and forms
 - 📮 **Postal Code APIs**: Get all CAP codes for any commune
 - 🏷️ **Unique Communes**: No duplicates, perfect for UI components
@@ -20,12 +26,22 @@ A lightweight, performant TypeScript library providing access to all Italian mun
 ## 📦 Installation
 
 ```bash
-npm install italian-cap-comuni-province
+npm install @marlenesco/italian-cap-comuni-province
 # or
-yarn add italian-cap-comuni-province
+yarn add @marlenesco/italian-cap-comuni-province
 # or
-pnpm add italian-cap-comuni-province
+pnpm add @marlenesco/italian-cap-comuni-province
 ```
+
+To retain existing import paths, install the fork under the original name with an
+npm alias (available after the first scoped publication):
+
+```bash
+npm install italian-cap-comuni-province@npm:@marlenesco/italian-cap-comuni-province@1.2.0
+```
+
+See [Releasing the scoped fork](docs/releasing.md) for the version policy and the
+GitHub merge-to-npm workflow. Publication is disabled until explicitly configured.
 
 ## 🚀 Quick Start
 
@@ -34,7 +50,7 @@ import {
   searchComuni,
   getComuniByCAP,
   isValidCAP,
-} from 'italian-cap-comuni-province';
+} from '@marlenesco/italian-cap-comuni-province';
 
 // Search municipalities by name
 const results = searchComuni('Milano', { limit: 5 });
@@ -55,7 +71,7 @@ console.log(isValidCAP('99999')); // false
 import {
   searchComuni,
   searchComuniWithFilters,
-} from 'italian-cap-comuni-province';
+} from '@marlenesco/italian-cap-comuni-province';
 
 // Search with options
 const results = searchComuni('Rom', {
@@ -87,7 +103,7 @@ import {
   getComuniUniqueByProvincia,
   getCapsByComune,
   getCapsByComuneNome,
-} from 'italian-cap-comuni-province';
+} from '@marlenesco/italian-cap-comuni-province';
 
 // Get all provinces (alphabetically sorted)
 const province = getAllProvince();
@@ -126,7 +142,7 @@ import {
   getCapsByComune,
   getCapsByComuneNome,
   getComuneWithAllCaps,
-} from 'italian-cap-comuni-province';
+} from '@marlenesco/italian-cap-comuni-province';
 
 // Get unique communes for a province (no CAP duplicates)
 const uniqueComuni = getComuniUniqueByProvincia('MI');
@@ -164,7 +180,7 @@ import {
   getComuniUniqueByProvincia,
   getCapsByComune,
   type Comune,
-} from 'italian-cap-comuni-province';
+} from '@marlenesco/italian-cap-comuni-province';
 
 function AddressForm() {
   const [selectedProvincia, setSelectedProvincia] = useState('');
@@ -238,7 +254,7 @@ function AddressForm() {
 ## 🔮 Autocomplete
 
 ```typescript
-import { getSuggestions } from 'italian-cap-comuni-province';
+import { getSuggestions } from '@marlenesco/italian-cap-comuni-province';
 
 // For implementing autocomplete
 const suggestions = getSuggestions('Mil', 5);
@@ -248,7 +264,7 @@ const suggestions = getSuggestions('Mil', 5);
 ## 📊 Data Access
 
 ```typescript
-import comuniItaliani from 'italian-cap-comuni-province';
+import comuniItaliani from '@marlenesco/italian-cap-comuni-province';
 
 // Complete data access
 const stats = comuniItaliani.getStats();
@@ -268,7 +284,7 @@ import {
   searchComuni,
   isValidCAP,
   getSuggestions,
-} from 'italian-cap-comuni-province';
+} from '@marlenesco/italian-cap-comuni-province';
 
 // React component example
 function CityAutocomplete({ value, onChange }) {
@@ -416,9 +432,10 @@ getSuggestions(query, limit); // Get autocomplete suggestions
 
 ## ⚡ Performance
 
-- **Bundle size**: ~4MB compressed (complete dataset)
+- **Runtime data**: Shared tabular JSON assets, generated from the original datasets during build
 - **Search speed**: O(1) for CAP and ISTAT codes, O(n) optimized for names
-- **Memory footprint**: ~20MB runtime (indices included)
+- **Benchmarks**: [Measured before/after results, methodology and limitations](docs/benchmarks.md).
+  Reproduce measurements with `node scripts/benchmark.mjs` (see [dataset maintenance](docs/datasets.md)).
 - **Tree-shaking**: Full support, import only used functions
 
 ## 📊 Data Source
@@ -437,7 +454,7 @@ The database includes:
 
 **Data Features:**
 
-- ✅ **Always Updated**: Automatically synchronized with official ISTAT sources
+- ✅ **Reviewable Updates**: Explicit source updates with validation and provenance
 - ✅ **Complete**: All Italian administrative divisions
 - ✅ **Free**: Released under MIT license
 - ✅ **Reliable**: Used by professionals and developers
@@ -450,9 +467,32 @@ Visit their website: [https://www.gardainformatica.it/database-comuni-italiani](
 
 ## 🔄 Data Updates
 
-The underlying data is regularly updated from official ISTAT sources. New versions of this library are released when significant administrative changes occur (new municipalities, province modifications, etc.).
+The original Garda Informatica JSON files in `src/data` are the source of truth.
+Builds generate lossless tabular runtime assets locally; builds, tests and installs
+never download datasets.
+
+```bash
+npm run data:check                    # Compare the latest official archive without writing
+npm run data:update -- --dry-run      # Preview changes
+npm run data:update                   # Validate and update the original JSON files
+npm run data:verify                   # Verify local data and checksums offline
+npm run data:build                    # Regenerate runtime tables offline
+```
+
+See [Dataset maintenance](docs/datasets.md) for local ZIP import, change reports,
+the opt-in weekly GitHub update proposals, provenance and rollback. Maintainers
+review updates before merging. The fork can publish new versions after merge
+through the [opt-in release workflow](docs/releasing.md).
 
 ## 📝 Changelog
+
+v1.2.0 - First scoped fork release (unpublished)
+
+- Separate `@marlenesco` package identity, preserving the original project attribution
+- Lossless tabular runtime datasets and reviewable Garda update tooling
+- Opt-in GitHub publication after merge; no runtime API changes
+
+Upstream release history:
 
 v1.1.1 - Province autonome and data updated
 
@@ -475,14 +515,15 @@ Original database by Garda Informatica is also released under MIT License.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please open issues and pull requests.
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for build, test and dataset maintenance instructions.
 
 ## 🔗 Links
 
-- [Repository](https://github.com/spritzcoder/italian-cap-comuni-province)
-- [NPM Package](https://npmjs.com/package/italian-cap-comuni-province)
+- [Repository](https://github.com/marlenesco/italian-cap-comuni-province)
+- [Upstream repository](https://github.com/spritzcoder/italian-cap-comuni-province)
+- [NPM Package](https://www.npmjs.com/package/@marlenesco/italian-cap-comuni-province)
 - [Data Source](https://www.gardainformatica.it/database-comuni-italiani)
-- [Issues](https://github.com/yourusername/italian-cap-comuni-province/issues)
+- [Issues](https://github.com/marlenesco/italian-cap-comuni-province/issues)
 
 ---
 
