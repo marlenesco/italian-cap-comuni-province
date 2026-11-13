@@ -12,7 +12,7 @@ A lightweight, performant TypeScript library providing access to all Italian mun
 - 🎯 **TypeScript Native**: Full type safety and IntelliSense support
 - 📱 **Zero Dependencies**: No external libraries required
 - 🌐 **Dual ESM/CJS**: Supports both module formats
-- 🔄 **Always Updated**: Data synced with official ISTAT sources
+- 🔄 **Dataset Maintenance**: Reviewable updates from Garda Informatica
 - 🎯 **Form Helpers**: Deduplicated data perfect for dropdowns and forms
 - 📮 **Postal Code APIs**: Get all CAP codes for any commune
 - 🏷️ **Unique Communes**: No duplicates, perfect for UI components
@@ -416,9 +416,9 @@ getSuggestions(query, limit); // Get autocomplete suggestions
 
 ## ⚡ Performance
 
-- **Bundle size**: ~4MB compressed (complete dataset)
+- **Runtime data**: Shared tabular JSON assets, generated from the original datasets during build
 - **Search speed**: O(1) for CAP and ISTAT codes, O(n) optimized for names
-- **Memory footprint**: ~20MB runtime (indices included)
+- **Benchmarks**: Reproduce distributed size, compression, startup, memory and lookup measurements with `node scripts/benchmark.mjs` (see [dataset maintenance](docs/datasets.md))
 - **Tree-shaking**: Full support, import only used functions
 
 ## 📊 Data Source
@@ -437,7 +437,7 @@ The database includes:
 
 **Data Features:**
 
-- ✅ **Always Updated**: Automatically synchronized with official ISTAT sources
+- ✅ **Reviewable Updates**: Explicit source updates with validation and provenance
 - ✅ **Complete**: All Italian administrative divisions
 - ✅ **Free**: Released under MIT license
 - ✅ **Reliable**: Used by professionals and developers
@@ -450,7 +450,21 @@ Visit their website: [https://www.gardainformatica.it/database-comuni-italiani](
 
 ## 🔄 Data Updates
 
-The underlying data is regularly updated from official ISTAT sources. New versions of this library are released when significant administrative changes occur (new municipalities, province modifications, etc.).
+The original Garda Informatica JSON files in `src/data` are the source of truth.
+Builds generate lossless tabular runtime assets locally; builds, tests and installs
+never download datasets.
+
+```bash
+npm run data:check                    # Compare the latest official archive without writing
+npm run data:update -- --dry-run      # Preview changes
+npm run data:update                   # Validate and update the original JSON files
+npm run data:verify                   # Verify local data and checksums offline
+npm run data:build                    # Regenerate runtime tables offline
+```
+
+See [Dataset maintenance](docs/datasets.md) for local ZIP import, change reports,
+the opt-in weekly GitHub update proposals, provenance and rollback. Maintainers
+review updates and publish through the usual release process.
 
 ## 📝 Changelog
 
@@ -475,7 +489,7 @@ Original database by Garda Informatica is also released under MIT License.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please open issues and pull requests.
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for build, test and dataset maintenance instructions.
 
 ## 🔗 Links
 

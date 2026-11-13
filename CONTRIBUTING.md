@@ -1,0 +1,23 @@
+# Contributing
+
+Use Node.js 18 or later. Keep changes on a feature branch and install the locked
+development dependencies with `npm ci`.
+
+```sh
+npm test
+npm run type-check
+npm run lint
+npm run build
+npm run test:build
+npm run test:package
+```
+
+The build and tests generate local runtime tables automatically from the original
+JSON files in `src/data`. Do not commit `src/generated`, `dist`, ZIP archives or
+local benchmark/report artifacts. Do not change geographic data as part of a
+format-only optimization.
+
+See [Dataset maintenance](docs/datasets.md) for source discovery, offline import,
+dry-run reports, checksum verification, generation, workflow proposals, rollback
+and benchmark reproduction. Review dataset updates separately from API changes.
+No automatic npm publication is configured for dataset maintenance.
