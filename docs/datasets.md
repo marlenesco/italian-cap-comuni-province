@@ -4,8 +4,9 @@
 
 The source of truth is the three original Garda Informatica JSON files in
 `src/data`: `gi_comuni_cap.json`, `gi_province.json` and `gi_regioni.json`.
-Never edit the generated runtime tables. This change does not update the existing
-geographic records, the package version, the license or public API.
+Never edit the generated runtime tables. Generating tables does not change the
+geographic records, license or public API. The scoped fork has an independent
+[version and release policy](releasing.md).
 
 Garda's [database page](https://www.gardainformatica.it/database-comuni-italiani)
 and the archive's `README.txt` declare the database under the MIT license.
@@ -119,7 +120,7 @@ Watching only tsup's imported dependency graph would miss the original sources.
 bridges, both JS module entry points, declarations and source maps. Each bridge
 uses a static `require('./gi_*.json')`; CJS and ESM both load the same table through
 it. This avoids incompatible native ESM JSON import-attribute syntax across Node
-18 and newer, while allowing browser bundlers to resolve the static JSON requires.
+releases, while allowing browser bundlers to resolve the static JSON requires.
 Inlining tables in both bundles was rejected because it duplicates payloads and
 inflates source maps. The tables normalize directly into the existing public
 objects, without intermediate raw objects. Indices and search algorithms remain
@@ -170,7 +171,8 @@ file compressed separately; they are not tarball or single-entry download sizes.
 started manually from **Actions → Propose dataset updates → Run workflow**.
 Scheduled runs use the repository's default branch; the workflow must be present
 there and Actions must be enabled. It downloads and validates the archive, then
-runs build and compatibility checks when the data changed. Every successful
+includes a patch version bump and runs build and compatibility checks when the data
+changed. The proposed version is included in the Markdown report. Every successful
 comparison uploads full JSON/Markdown reports and puts the summary in the job
 summary. The PR body includes source date,
 archive and dataset digests, byte/record differences and validation status; the
@@ -187,9 +189,9 @@ fork does not create proposals in the upstream repository.
 Each archive gets a dedicated checksum-derived branch. Existing open, closed or
 merged proposals are respected without rewriting commits or reopening a rejected
 update. If a previous run pushed the branch but failed to create its PR, a retry
-reuses it only when the source bytes and provenance match, allowing acquisition
-timestamps to differ. Other branch edits require manual review. No force push is
-used. Concurrency is serialized. Only contents and pull-request write permissions
+reuses it only when source bytes, package/lockfile versions and provenance match,
+allowing acquisition timestamps to differ. Other branch edits require manual review.
+No force push is used. Concurrency is serialized. Only contents and pull-request write permissions
 are granted to the update job; no credentials are printed.
 
 GitHub currently requires approval for PR workflows triggered by `GITHUB_TOKEN`
@@ -197,7 +199,10 @@ when the PR is opened, updated or reopened. This workflow performs its own check
 before creating a proposal. Maintainers can approve any subsequent PR checks, or
 use a GitHub App for fully automatic PR checks; see
 [GitHub's workflow-trigger documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
-There is no automatic merge, version bump, release or npm publication.
+There is no automatic merge or npm publication in the dataset workflow itself.
+Proposals include a patch version bump in both manifests. After maintainer review
+and merge, the separate [release workflow](releasing.md) can publish that version
+if explicitly enabled and authenticated. Its publication gate is disabled by default.
 
 To roll back, restore all three source files and `provenance.json` together from a
 known-good Git commit on a new branch, then rebuild and rerun the validation above.

@@ -7,6 +7,7 @@ import { tables } from './schema.mjs';
 
 const sourceFiles = tables.map((name) => `src/data/${name}.json`);
 const provenanceFile = 'src/data/provenance.json';
+const versionFiles = ['package.json', 'package-lock.json'];
 const execute = (command, args) => execFileSync(command, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 const comparable = (metadata) => {
   const copy = { ...metadata };
@@ -36,8 +37,8 @@ export function proposeUpdate({ repository, baseBranch, reportPath, provenance }
     run('git', ['fetch', '--no-tags', 'origin', branch]);
     if (run('git', ['rev-parse', 'FETCH_HEAD']).trim() !== sha) throw new Error('Dataset branch changed during inspection; retry after reviewing its head');
     const changed = run('git', ['diff', '--name-only', 'HEAD...FETCH_HEAD']).trim().split('\n').filter(Boolean);
-    if (changed.some((path) => ![...sourceFiles, provenanceFile].includes(path))) throw new Error('Existing dataset branch contains other changes; review it manually');
-    run('git', ['diff', '--quiet', 'FETCH_HEAD', '--', ...sourceFiles]);
+    if (changed.some((path) => ![...sourceFiles, provenanceFile, ...versionFiles].includes(path))) throw new Error('Existing dataset branch contains other changes; review it manually');
+    run('git', ['diff', '--quiet', 'FETCH_HEAD', '--', ...sourceFiles, ...versionFiles]);
     const previous = JSON.parse(run('git', ['show', `FETCH_HEAD:${provenanceFile}`]));
     if (!isDeepStrictEqual(comparable(previous), comparable(provenance))) throw new Error('Existing dataset branch provenance differs; review it manually');
     log('Recovering a validated dataset branch without overwriting its commits.');
@@ -45,7 +46,7 @@ export function proposeUpdate({ repository, baseBranch, reportPath, provenance }
     run('git', ['switch', '-c', branch]);
     run('git', ['config', 'user.name', 'github-actions[bot]']);
     run('git', ['config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com']);
-    run('git', ['add', '--', ...sourceFiles, provenanceFile]);
+    run('git', ['add', '--', ...sourceFiles, provenanceFile, ...versionFiles]);
     run('git', ['commit', '-m', 'Update Garda Informatica geographic datasets']);
     run('git', ['push', 'origin', `HEAD:${ref}`]);
   }

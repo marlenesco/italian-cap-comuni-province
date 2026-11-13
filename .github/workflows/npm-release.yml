@@ -1,0 +1,117 @@
+name: Validate and release the scoped package
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the checked version (requires NPM_PUBLISH_ENABLED)
+        type: boolean
+        default: false
+      bootstrap:
+        description: Use the temporary personal token for the first scoped release
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-release-${{ github.event_name == 'pull_request' && github.ref || 'main' }}
+  cancel-in-progress: false
+  # Preserve pending release runs when several PRs merge close together.
+  queue: max
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      filename: ${{ steps.pack.outputs.filename }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - run: npm ci
+      - name: Require a version bump for distributed changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/release.mjs check-version "$BASE_SHA"
+      - name: Validate data, API and packed consumers
+        run: |
+          npm run data:verify
+          npm test
+          npm run type-check
+          npm run lint
+          npm run test:build
+          npm run test:package
+          git diff --check
+      - name: Pack the verified commit
+        id: pack
+        run: node scripts/release.mjs pack "$RUNNER_TEMP/release"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/release/
+          if-no-files-found: error
+
+  publish:
+    needs: validate
+    if: >-
+      github.repository == 'marlenesco/italian-cap-comuni-province' &&
+      github.ref == 'refs/heads/main' &&
+      vars.NPM_PUBLISH_ENABLED == 'true' &&
+      (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish == true))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org/
+          package-manager-cache: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/release/
+      - name: Check whether this version is already public
+        id: registry
+        run: node scripts/release.mjs status
+      - name: Verify the personal identity for a manual bootstrap
+        if: steps.registry.outputs.exists == 'false' && inputs.bootstrap == true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_BOOTSTRAP_TOKEN }}
+        run: |
+          test -n "$NODE_AUTH_TOKEN"
+          test "$(npm whoami --registry=https://registry.npmjs.org/)" = marlenesco
+      - name: Publish the verified tarball
+        if: steps.registry.outputs.exists == 'false'
+        env:
+          PACKAGE_FILE: ${{ needs.validate.outputs.filename }}
+          NODE_AUTH_TOKEN: ${{ inputs.bootstrap == true && secrets.NPM_BOOTSTRAP_TOKEN || '' }}
+        run: npm publish "$RUNNER_TEMP/release/$PACKAGE_FILE" --access public --ignore-scripts --registry=https://registry.npmjs.org/
+      - name: Summarize publication
+        env:
+          ALREADY_PUBLIC: ${{ steps.registry.outputs.exists }}
+        run: |
+          if [ "$ALREADY_PUBLIC" = true ]; then
+            echo 'This version is already on npm; no publication was attempted.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'The verified scoped package was published to npm.' >> "$GITHUB_STEP_SUMMARY"
+          fi

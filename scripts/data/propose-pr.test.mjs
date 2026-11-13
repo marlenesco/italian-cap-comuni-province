@@ -33,7 +33,7 @@ describe('Dataset update proposals', () => {
     const run = commands();
     expect(proposeUpdate(options, run, vi.fn())).toEqual({ action: 'created', branch, url, reusedBranch: false });
     expect(run).toHaveBeenCalledWith('git', ['push', 'origin', `HEAD:refs/heads/${branch}`]);
-    expect(run).toHaveBeenCalledWith('git', ['add', '--', 'src/data/gi_comuni_cap.json', 'src/data/gi_province.json', 'src/data/gi_regioni.json', 'src/data/provenance.json']);
+    expect(run).toHaveBeenCalledWith('git', ['add', '--', 'src/data/gi_comuni_cap.json', 'src/data/gi_province.json', 'src/data/gi_regioni.json', 'src/data/provenance.json', 'package.json', 'package-lock.json']);
     expect(run).toHaveBeenCalledWith('gh', expect.arrayContaining(['--repo', 'example/locations', '--base', 'main', '--head', branch, '--body-file', '/tmp/dataset-report.md']));
     expect(run.mock.calls.flat(2)).not.toContain('--force');
   });
@@ -57,11 +57,12 @@ describe('Dataset update proposals', () => {
     const retry = commands({ remote: true });
     expect(proposeUpdate(options, retry, vi.fn())).toEqual({ action: 'created', branch, url, reusedBranch: true });
     expect(mutations(retry)).toHaveLength(0);
-    expect(retry).toHaveBeenCalledWith('git', ['diff', '--quiet', 'FETCH_HEAD', '--', 'src/data/gi_comuni_cap.json', 'src/data/gi_province.json', 'src/data/gi_regioni.json']);
+    expect(retry).toHaveBeenCalledWith('git', ['diff', '--quiet', 'FETCH_HEAD', '--', 'src/data/gi_comuni_cap.json', 'src/data/gi_province.json', 'src/data/gi_regioni.json', 'package.json', 'package-lock.json']);
   });
 
   it.each([
     { paths: 'src/index.ts', message: /other changes/ },
+    { paths: 'package.json\npackage-lock.json', dataDiffer: true, message: /Different source bytes/ },
     { provenance: { ...metadata, sourceDate: '2026-01-01' }, message: /provenance differs/ },
     { fetchedSha: 'c'.repeat(40), message: /changed during inspection/ },
     { dataDiffer: true, message: /Different source bytes/ },
@@ -118,8 +119,10 @@ describe('Dataset update proposals', () => {
       const files = ['gi_comuni_cap', 'gi_province', 'gi_regioni'];
       for (const file of files) writeFileSync(join(work, 'src/data', `${file}.json`), '[]');
       writeFileSync(join(work, 'src/data/provenance.json'), JSON.stringify({ archiveSha256: null }));
+      for (const file of ['package.json', 'package-lock.json']) writeFileSync(join(work, file), '{"version":"1.2.0"}');
       git('add', '.'); git('commit', '-m', 'Initial fixture'); git('push', 'origin', 'main');
       const candidate = (provenance) => {
+        for (const file of ['package.json', 'package-lock.json']) writeFileSync(join(work, file), '{"version":"1.2.1"}');
         for (const file of files) writeFileSync(join(work, 'src/data', `${file}.json`), '["candidate"]');
         writeFileSync(join(work, 'src/data/provenance.json'), JSON.stringify(provenance));
       };

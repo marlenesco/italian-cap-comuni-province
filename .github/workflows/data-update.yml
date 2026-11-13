@@ -43,6 +43,15 @@ jobs:
           const report = JSON.parse(readFileSync(`${process.env.RUNNER_TEMP}/dataset-report.json`));
           appendFileSync(process.env.GITHUB_OUTPUT, `changed=${report.changed}\n`);
           NODE
+      - name: Include the next patch version in the dataset proposal
+        if: steps.data.outputs.changed == 'true'
+        run: |
+          npm version patch --no-git-tag-version --ignore-scripts
+          node --input-type=module <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          const { name, version } = JSON.parse(readFileSync('package.json'));
+          appendFileSync(`${process.env.RUNNER_TEMP}/dataset-report.json.md`, `\nProposed package: ${name}@${version}. Publication after merge requires the separate release workflow to be enabled.\n`);
+          NODE
       - name: Verify data and compatibility
         if: steps.data.outputs.changed == 'true'
         run: |

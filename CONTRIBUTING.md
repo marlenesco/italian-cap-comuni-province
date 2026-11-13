@@ -21,4 +21,7 @@ format-only optimization.
 See [Dataset maintenance](docs/datasets.md) for source discovery, offline import,
 dry-run reports, checksum verification, generation, workflow proposals, rollback
 and benchmark reproduction. Review dataset updates separately from API changes.
-No automatic npm publication is configured for dataset maintenance.
+For the scoped fork, see [Releasing](docs/releasing.md). Dataset proposals include
+a patch version bump. A separate, initially disabled workflow can publish the
+reviewed version after merge to `main`. Keep version changes in PRs and never
+commit npm credentials.

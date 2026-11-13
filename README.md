@@ -1,6 +1,12 @@
-# Italian CAP Comuni Province
+# Italian CAP Comuni Province — maintained fork
 
 🇮🇹 **Complete TypeScript library for Italian locations: municipalities, provinces, postal codes with advanced search and autocomplete**
+
+This is the personal fork maintained by [marlenesco](https://github.com/marlenesco),
+based on [SpritzCoder's original project](https://github.com/spritzcoder/italian-cap-comuni-province).
+It uses the separate npm name `@marlenesco/italian-cap-comuni-province`; the original
+package and its ownership remain independent. Version **1.2.0** is prepared for the
+first scoped release and has **not been published yet**.
 
 A lightweight, performant TypeScript library providing access to all Italian municipalities, provinces, and regions with intelligent search capabilities, CAP validation, and autocomplete support.
 
@@ -20,12 +26,22 @@ A lightweight, performant TypeScript library providing access to all Italian mun
 ## 📦 Installation
 
 ```bash
-npm install italian-cap-comuni-province
+npm install @marlenesco/italian-cap-comuni-province
 # or
-yarn add italian-cap-comuni-province
+yarn add @marlenesco/italian-cap-comuni-province
 # or
-pnpm add italian-cap-comuni-province
+pnpm add @marlenesco/italian-cap-comuni-province
 ```
+
+To retain existing import paths, install the fork under the original name with an
+npm alias (available after the first scoped publication):
+
+```bash
+npm install italian-cap-comuni-province@npm:@marlenesco/italian-cap-comuni-province@1.2.0
+```
+
+See [Releasing the scoped fork](docs/releasing.md) for the version policy and the
+GitHub merge-to-npm workflow. Publication is disabled until explicitly configured.
 
 ## 🚀 Quick Start
 
@@ -34,7 +50,7 @@ import {
   searchComuni,
   getComuniByCAP,
   isValidCAP,
-} from 'italian-cap-comuni-province';
+} from '@marlenesco/italian-cap-comuni-province';
 
 // Search municipalities by name
 const results = searchComuni('Milano', { limit: 5 });
@@ -55,7 +71,7 @@ console.log(isValidCAP('99999')); // false
 import {
   searchComuni,
   searchComuniWithFilters,
-} from 'italian-cap-comuni-province';
+} from '@marlenesco/italian-cap-comuni-province';
 
 // Search with options
 const results = searchComuni('Rom', {
@@ -87,7 +103,7 @@ import {
   getComuniUniqueByProvincia,
   getCapsByComune,
   getCapsByComuneNome,
-} from 'italian-cap-comuni-province';
+} from '@marlenesco/italian-cap-comuni-province';
 
 // Get all provinces (alphabetically sorted)
 const province = getAllProvince();
@@ -126,7 +142,7 @@ import {
   getCapsByComune,
   getCapsByComuneNome,
   getComuneWithAllCaps,
-} from 'italian-cap-comuni-province';
+} from '@marlenesco/italian-cap-comuni-province';
 
 // Get unique communes for a province (no CAP duplicates)
 const uniqueComuni = getComuniUniqueByProvincia('MI');
@@ -164,7 +180,7 @@ import {
   getComuniUniqueByProvincia,
   getCapsByComune,
   type Comune,
-} from 'italian-cap-comuni-province';
+} from '@marlenesco/italian-cap-comuni-province';
 
 function AddressForm() {
   const [selectedProvincia, setSelectedProvincia] = useState('');
@@ -238,7 +254,7 @@ function AddressForm() {
 ## 🔮 Autocomplete
 
 ```typescript
-import { getSuggestions } from 'italian-cap-comuni-province';
+import { getSuggestions } from '@marlenesco/italian-cap-comuni-province';
 
 // For implementing autocomplete
 const suggestions = getSuggestions('Mil', 5);
@@ -248,7 +264,7 @@ const suggestions = getSuggestions('Mil', 5);
 ## 📊 Data Access
 
 ```typescript
-import comuniItaliani from 'italian-cap-comuni-province';
+import comuniItaliani from '@marlenesco/italian-cap-comuni-province';
 
 // Complete data access
 const stats = comuniItaliani.getStats();
@@ -268,7 +284,7 @@ import {
   searchComuni,
   isValidCAP,
   getSuggestions,
-} from 'italian-cap-comuni-province';
+} from '@marlenesco/italian-cap-comuni-province';
 
 // React component example
 function CityAutocomplete({ value, onChange }) {
@@ -465,9 +481,18 @@ npm run data:build                    # Regenerate runtime tables offline
 
 See [Dataset maintenance](docs/datasets.md) for local ZIP import, change reports,
 the opt-in weekly GitHub update proposals, provenance and rollback. Maintainers
-review updates and publish through the usual release process.
+review updates before merging. The fork can publish new versions after merge
+through the [opt-in release workflow](docs/releasing.md).
 
 ## 📝 Changelog
+
+v1.2.0 - First scoped fork release (unpublished)
+
+- Separate `@marlenesco` package identity, preserving the original project attribution
+- Lossless tabular runtime datasets and reviewable Garda update tooling
+- Opt-in GitHub publication after merge; no runtime API changes
+
+Upstream release history:
 
 v1.1.1 - Province autonome and data updated
 
@@ -494,10 +519,11 @@ Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for build, tes
 
 ## 🔗 Links
 
-- [Repository](https://github.com/spritzcoder/italian-cap-comuni-province)
-- [NPM Package](https://npmjs.com/package/italian-cap-comuni-province)
+- [Repository](https://github.com/marlenesco/italian-cap-comuni-province)
+- [Upstream repository](https://github.com/spritzcoder/italian-cap-comuni-province)
+- [NPM Package](https://www.npmjs.com/package/@marlenesco/italian-cap-comuni-province)
 - [Data Source](https://www.gardainformatica.it/database-comuni-italiani)
-- [Issues](https://github.com/yourusername/italian-cap-comuni-province/issues)
+- [Issues](https://github.com/marlenesco/italian-cap-comuni-province/issues)
 
 ---
 
