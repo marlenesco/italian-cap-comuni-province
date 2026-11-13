@@ -418,7 +418,8 @@ getSuggestions(query, limit); // Get autocomplete suggestions
 
 - **Runtime data**: Shared tabular JSON assets, generated from the original datasets during build
 - **Search speed**: O(1) for CAP and ISTAT codes, O(n) optimized for names
-- **Benchmarks**: Reproduce distributed size, compression, startup, memory and lookup measurements with `node scripts/benchmark.mjs` (see [dataset maintenance](docs/datasets.md))
+- **Benchmarks**: [Measured before/after results, methodology and limitations](docs/benchmarks.md).
+  Reproduce measurements with `node scripts/benchmark.mjs` (see [dataset maintenance](docs/datasets.md)).
 - **Tree-shaking**: Full support, import only used functions
 
 ## 📊 Data Source
