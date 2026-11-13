@@ -1,7 +1,7 @@
 {
-  "name": "italian-cap-comuni-province",
-  "version": "1.1.1",
-  "description": "🇮🇹 Complete TypeScript library for Italian locations: municipalities, provinces, postal codes with advanced search and autocomplete",
+  "name": "@marlenesco/italian-cap-comuni-province",
+  "version": "1.2.0",
+  "description": "Maintained fork of italian-cap-comuni-province: Italian municipalities, provinces, postal codes, search and autocomplete",
   "keywords": [
     "italy",
     "italian",
@@ -20,12 +20,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/spritzcoder/italian-cap-comuni-province.git"
+    "url": "git+https://github.com/marlenesco/italian-cap-comuni-province.git"
   },
   "bugs": {
-    "url": "https://github.com/spritzcoder/italian-cap-comuni-province/issues"
+    "url": "https://github.com/marlenesco/italian-cap-comuni-province/issues"
   },
-  "homepage": "https://github.com/spritzcoder/italian-cap-comuni-province#readme",
+  "homepage": "https://github.com/marlenesco/italian-cap-comuni-province#readme",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -81,5 +81,15 @@
     "tsup": "^8.1.0",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0"
+  },
+  "contributors": [
+    {
+      "name": "David Foliti",
+      "url": "https://github.com/marlenesco"
+    }
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }

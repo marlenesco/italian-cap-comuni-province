@@ -24,7 +24,9 @@ evaluated during maintenance-tool development is **not** part of this comparison
 
 These measurements describe the recorded revisions rather than tracking future
 `HEAD`. Later README or package metadata edits can change tarball sizes without
-changing runtime assets. The benchmark harness is [scripts/benchmark.mjs](../scripts/benchmark.mjs).
+changing runtime assets. The scoped fork at version 1.2.0 has different package
+metadata and README text; the tarball figures below remain historical measurements
+of the original unscoped snapshots, not measurements of the scoped release. The benchmark harness is [scripts/benchmark.mjs](../scripts/benchmark.mjs).
 
 ## Before and after
 
