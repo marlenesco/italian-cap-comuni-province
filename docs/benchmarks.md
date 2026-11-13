@@ -28,6 +28,10 @@ changing runtime assets. The scoped fork at version 1.2.0 has different package
 metadata and README text; the tarball figures below remain historical measurements
 of the original unscoped snapshots, not measurements of the scoped release. The benchmark harness is [scripts/benchmark.mjs](../scripts/benchmark.mjs).
 
+Later development-tool upgrades can also change emitted JavaScript and source-map
+sizes. The figures below remain measurements of the recorded snapshots; rerun the
+harness to measure a newer toolchain.
+
 ## Before and after
 
 All size values are **UTF-8/file bytes**, not filesystem allocation or rounded MB.

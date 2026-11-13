@@ -55,6 +55,7 @@ jobs:
       - name: Verify data and compatibility
         if: steps.data.outputs.changed == 'true'
         run: |
+          npm run audit
           npm run data:verify
           npm test
           npm run type-check
@@ -63,7 +64,7 @@ jobs:
           npm run test:build
           npm run test:package
           git diff --check
-          printf '\nChecks passed: data verification, unit/equivalence tests, type checking, lint, build/watch regeneration, packed CJS/ESM/browser consumers and git diff whitespace checks.\n' >> "$RUNNER_TEMP/dataset-report.json.md"
+          printf '\nChecks passed: dependency audit, data verification, unit/equivalence tests, type checking, lint, build/watch regeneration, packed CJS/ESM/browser consumers and git diff whitespace checks.\n' >> "$RUNNER_TEMP/dataset-report.json.md"
       - name: Summarize the result, including blocked updates
         if: always()
         run: |
