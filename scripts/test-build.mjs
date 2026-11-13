@@ -32,7 +32,12 @@ try {
   rmSync(join(directory, 'src/generated'), { recursive: true, force: true });
   symlinkSync(resolve('node_modules'), join(directory, 'node_modules'), 'dir');
   const source = read('src/data/gi_comuni_cap.json');
-  source[0].denominazione_ita = 'Abano Terme (build fixture)';
+  const fixtureCode = source[0].codice_istat;
+  const fixtureCAPs = new Set(source.filter((row) => row.codice_istat === fixtureCode).map((row) => row.cap));
+  let fixtureCAP = 10;
+  while (fixtureCAPs.has(String(fixtureCAP).padStart(5, '0'))) fixtureCAP++;
+  source.push({ ...source[0], cap: String(fixtureCAP).padStart(5, '0') });
+  for (const row of source) if (row.codice_istat === fixtureCode) row.denominazione_ita = 'Abano Terme (build fixture)';
   writeFileSync(join(directory, 'src/data/gi_comuni_cap.json'), JSON.stringify(source));
   const result = spawnSync(process.execPath, [tsup], { cwd: directory, encoding: 'utf8', timeout: 30000 });
   assert.equal(result.status, 0, result.stderr);
@@ -52,7 +57,7 @@ try {
   // Allow the initial watched build to finish before modifying its source.
   await delay(1500);
   const before = changes;
-  source[0].denominazione_ita = 'Abano Terme (watch fixture)';
+  for (const row of source) if (row.codice_istat === fixtureCode) row.denominazione_ita = 'Abano Terme (watch fixture)';
   writeFileSync(join(directory, 'src/data/gi_comuni_cap.json'), JSON.stringify(source));
   await waitForBuild(before + 1);
   const stable = changes;
