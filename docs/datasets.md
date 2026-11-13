@@ -31,7 +31,8 @@ the provider. HTTPS remains the source authentication mechanism.
 
 ## Commands
 
-Use Node.js 18 or later and `npm ci`.
+Use a supported Node.js LTS release and `npm ci`. Node.js 24 is the development
+and workflow reference.
 
 | Command | Effect |
 | --- | --- |

@@ -1,7 +1,8 @@
 # Contributing
 
-Use Node.js 18 or later. Keep changes on a feature branch and install the locked
-development dependencies with `npm ci`.
+Use a supported Node.js LTS release; Node.js 24 is the development reference.
+Keep changes on a feature branch and install the locked development dependencies
+with `npm ci`.
 
 ```sh
 npm test

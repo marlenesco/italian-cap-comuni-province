@@ -106,8 +106,9 @@ For context, nearest-rank quartiles (the 4th and 12th sorted observations out of
 ## Methodology
 
 **Environment:** Node.js `v24.22.1`, Apple M2 Max, macOS (`darwin`, kernel release
-`27.0.0`), with the locked development dependencies. Node 18 compatibility was
-tested separately; the timings above were measured only on Node 24.
+`27.0.0`), with the locked development dependencies. Functional compatibility is
+checked separately on supported LTS releases; these timings were measured only
+on Node 24.
 
 1. Build each snapshot and preserve its complete `dist` directory and npm pack
    manifest. Use identical geographic inputs and the same benchmark harness,
