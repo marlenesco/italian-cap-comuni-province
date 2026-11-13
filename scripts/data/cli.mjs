@@ -24,7 +24,6 @@ try {
     console.log(markdown);
   }
 } catch (error) {
-  if (error.report) console.log(formatReport(error.report));
   console.error(error.message);
   process.exitCode = 1;
 }

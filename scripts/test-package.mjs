@@ -29,23 +29,25 @@ try {
     const table = JSON.parse(readFileSync(join(packageDirectory, asset)));
     assert(Array.isArray(table.columns) && Array.isArray(table.rows));
   }
-  const cjsResult = { exports: Object.keys(cjs).sort(), records: cjs.getAllComuni(), stats: cjs.getStats() };
+  assert.deepEqual(cjs.getProvinceAutonome().map((province) => province.sigla), ['BZ', 'TN']);
+  const cjsResult = { exports: Object.keys(cjs).sort(), records: cjs.getAllComuni(), stats: cjs.getStats(), autonomous: cjs.getProvinceAutonome(), regionsAndAutonomous: cjs.getRegioniAndProvinceAutonome() };
   const esmOutput = run(process.execPath, ['--input-type=module', '-e', `
     import assert from 'node:assert/strict';
     import lib, * as api from 'italian-cap-comuni-province';
     assert.equal(lib.getComuneByIstat('028001').nome, 'Abano Terme');
     assert(api.getComuniByCAP('00118').length > 0);
-    console.log(JSON.stringify({exports:Object.keys(api).sort(),records:api.getAllComuni(),stats:api.getStats()}));
+    console.log(JSON.stringify({exports:Object.keys(api).sort(),records:api.getAllComuni(),stats:api.getStats(),autonomous:api.getProvinceAutonome(),regionsAndAutonomous:api.getRegioniAndProvinceAutonome()}));
   `]);
   assert.deepEqual(JSON.parse(esmOutput), JSON.parse(JSON.stringify(cjsResult)));
   assert.equal(cjs.default.getAllComuni().length, cjs.getAllComuni().length);
   const bundled = await build({
-    stdin: { contents: "import lib, * as api from 'italian-cap-comuni-province'; globalThis.result = { records: api.getAllComuni(), stats:lib.getStats() };", resolveDir: directory },
+    stdin: { contents: "import lib, * as api from 'italian-cap-comuni-province'; globalThis.result = { records: api.getAllComuni(), stats:lib.getStats(), autonomous:api.getProvinceAutonome(), regionsAndAutonomous:api.getRegioniAndProvinceAutonome() };", resolveDir: directory },
     platform: 'browser', format: 'iife', target: 'es2020', bundle: true, write: false,
   });
   const context = {};
   runInNewContext(bundled.outputFiles[0].text, context);
-  assert.deepEqual(JSON.parse(JSON.stringify(context.result)), JSON.parse(JSON.stringify({ records: cjsResult.records, stats: cjsResult.stats })));
+  const { exports: _exports, ...browserResult } = cjsResult;
+  assert.deepEqual(JSON.parse(JSON.stringify(context.result)), JSON.parse(JSON.stringify(browserResult)));
   assert(readdirSync(join(packageDirectory, 'dist')).filter((f) => f.endsWith('.cjs')).length === 3);
   console.log(`Packed consumers passed: CJS, ESM and browser bundle (${packed.size} packed / ${packed.unpackedSize} unpacked bytes).`);
 } finally { rmSync(directory, { recursive: true, force: true }); }

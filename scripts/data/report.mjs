@@ -44,8 +44,7 @@ export function formatReport(report) {
   const lines = ['# Dataset update report', '', `Result: ${report.changed ? 'changes detected' : 'no changes'}`, `Source: ${report.source.archiveUrl || 'local official archive'}`, `Source date: ${report.source.sourceDate || 'unknown'}`, `Archive SHA-256: ${report.source.archiveSha256}`, '', '| Dataset | Records before → after | Raw bytes before → after | Table bytes before → after | Added | Removed | Modified |', '| --- | ---: | ---: | ---: | ---: | ---: | ---: |'];
   for (const [name, table] of Object.entries(report.tables)) lines.push(`| ${name} | ${table.beforeRecords} → ${table.afterRecords} | ${table.beforeBytes} → ${table.afterBytes} | ${table.beforeTableBytes} → ${table.afterTableBytes} | ${table.added.length} | ${table.removed.length} | ${table.modified.length} |`);
   lines.push('', `Municipalities added: ${report.municipalities.added.length}; removed: ${report.municipalities.removed.length}.`, `CAP associations changed for ${report.postalCodes.length} municipalities.`, '', 'Validation: raw schema, codes, coordinates, relationships, counts and ZIP CRC passed.', '');
-  lines.push(`Public API compatibility: ${report.compatibilityErrors?.length ? 'BLOCKED' : 'passed'}.`);
-  for (const error of report.compatibilityErrors || []) lines.push(`- ${error}`);
+  lines.push('Run the library test suite to verify public API compatibility before publishing.');
   lines.push('', 'Dataset SHA-256:');
   for (const [name, value] of Object.entries(report.source.datasets)) lines.push(`- ${name}: ${value.sha256}`);
   lines.push('', 'Review the full JSON report for record-level names, administrative codes, CAP associations, schema and order changes. Record count changes are reported, not rejected merely for differing from the previous release.');

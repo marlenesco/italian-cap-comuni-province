@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readDatasets, schemas, tables, verifyDatasets, verifyApiCompatibility } from './schema.mjs';
+import { readDatasets, schemas, tables, verifyDatasets } from './schema.mjs';
 
 export function toTable(records, columns) {
   return { columns, rows: records.map((record) => columns.map((key) => record[key])) };
@@ -10,7 +10,6 @@ export function toTable(records, columns) {
 export function buildData(source = 'src/data', target = 'src/generated') {
   const datasets = readDatasets(source);
   verifyDatasets(datasets);
-  verifyApiCompatibility(datasets);
   mkdirSync(target, { recursive: true });
   for (const name of tables) {
     const output = JSON.stringify(toTable(datasets[name], schemas[name])) + '\n';

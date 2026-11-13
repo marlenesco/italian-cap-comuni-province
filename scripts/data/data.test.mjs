@@ -208,25 +208,29 @@ describe('Transactional updates and reports', () => {
     await expect(updateDatasets({ directory, archive })).rejects.toThrow(/schema/);
     expect(snapshot(directory)).toEqual(before);
   });
-  it('blocks source categories that break existing APIs before replacing any files', async () => {
+  it('accepts lowercase autonomous-province categories without rewriting source values', async () => {
     const { directory, archive, root } = setup();
     const before = snapshot(directory);
     const next = fixture();
     next.gi_province[0].tipologia_provincia = 'provincia autonoma';
     next.gi_comuni_cap[0].tipologia_provincia = 'provincia autonoma';
     writeFileSync(archive, datasetZip(next));
-    const reportPath = join(root, 'blocked.json');
-    await expect(updateDatasets({ directory, archive, report: reportPath })).rejects.toThrow(/incompatible/);
-    expect(snapshot(directory)).toEqual(before);
-    expect(JSON.parse(readFileSync(reportPath)).compatibilityErrors).toHaveLength(1);
-    expect(readFileSync(`${reportPath}.md`, 'utf8')).toContain('BLOCKED');
-    const candidate = setup(next);
-    expect(() => buildData(candidate.directory, join(root, 'generated'))).toThrow(/incompatible/);
-    expect(() => verifyLocal(candidate.directory)).toThrow(/incompatible/);
+    const reportPath = join(root, 'update.json');
+    expect((await updateDatasets({ directory, archive, report: reportPath })).changed).toBe(true);
+    expect(snapshot(directory)).not.toEqual(before);
+    expect(readDatasets(directory)).toEqual(next);
+    expect(verifyLocal(directory).gi_province).toBe(1);
+    const target = join(root, 'generated');
+    buildData(directory, target);
+    for (const name of ['gi_province', 'gi_comuni_cap']) {
+      const table = JSON.parse(readFileSync(join(target, `${name}.json`)));
+      expect(table.rows[0][table.columns.indexOf('tipologia_provincia')]).toBe('provincia autonoma');
+    }
     const child = spawnSync(process.execPath, [resolve('scripts/data/cli.mjs'), 'update', '--archive', archive], { cwd: root, encoding: 'utf8' });
-    expect(child.status).toBe(1);
-    expect(child.stdout).toContain('BLOCKED');
-    expect(snapshot(directory)).toEqual(before);
+    expect(child.status).toBe(0);
+    expect(child.stderr).toBe('');
+    expect(child.stdout).toContain('Result: no changes');
+    expect(readDatasets(directory)).toEqual(next);
   });
   it('rolls back a failed directory swap', () => {
     const { directory } = setup(); const before = snapshot(directory);

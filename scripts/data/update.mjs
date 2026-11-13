@@ -1,7 +1,7 @@
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, statSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve, dirname } from 'node:path';
 import { buildData } from './build.mjs';
-import { tables, sha256, readDatasets, verifyDatasets, verifyApiCompatibility, apiCompatibilityErrors } from './schema.mjs';
+import { tables, sha256, readDatasets, verifyDatasets } from './schema.mjs';
 import { readArchive } from './zip.mjs';
 import { discoverArchive, download, sourcePage } from './source.mjs';
 import { compareDatasets, formatReport } from './report.mjs';
@@ -9,7 +9,6 @@ import { compareDatasets, formatReport } from './report.mjs';
 export function verifyLocal(directory = 'src/data') {
   const datasets = readDatasets(directory);
   const counts = verifyDatasets(datasets);
-  verifyApiCompatibility(datasets);
   const metadata = join(directory, 'provenance.json');
   if (existsSync(metadata)) {
     const provenance = JSON.parse(readFileSync(metadata, 'utf8'));
@@ -72,17 +71,12 @@ export async function updateDatasets(options = {}) {
     ...(options.archive ? { localArchive: basename(options.archive) } : {}),
     datasets: Object.fromEntries(tables.map((name) => [name, { sha256: sha256(files[name]), records: counts[name], bytes: files[name].length }])),
   };
-  const report = { ...diff, source, compatibilityErrors: apiCompatibilityErrors(next) };
+  const report = { ...diff, source };
   if (options.report) {
     const target = resolve(options.report);
     mkdirSync(dirname(target), { recursive: true });
     writeFileSync(target, JSON.stringify(report, null, 2) + '\n');
     writeFileSync(`${target}.md`, formatReport(report));
-  }
-  if (report.compatibilityErrors.length) {
-    const error = new Error(report.compatibilityErrors.join('; '));
-    error.report = report;
-    throw error;
   }
   if (report.changed && !options.dryRun) {
     const changes = Object.fromEntries(tables.map((name) => [name, Object.fromEntries(['added', 'removed', 'modified'].map((key) => [key, diff.tables[name][key].length]))]));

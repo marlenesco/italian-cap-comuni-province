@@ -80,15 +80,15 @@ It rejects traversal, symlinks, encryption, multipart archives, ZIP64 and unsupp
 compression. Supported formats are ordinary stored/deflated ZIPs, as published by
 Garda at inspection time. If the archive format changes, stop and review the parser.
 
-All datasets must pass validation together. Known category values that break
-existing public helpers are rejected without correcting the source data. In the
-archive inspected on 2026-11-13, Garda changed `Provincia autonoma` to
-`provincia autonoma`. The existing autonomous-province helpers compare the former
-case-sensitively; testing that archive in isolation failed two existing tests.
-Consequently this archive is reported but blocked before integration. Resolving
-that source/API mismatch requires a separate compatibility decision; do not
-bypass the guard or silently normalize downloaded categories. Other legitimate
-administrative and CAP changes remain eligible for review. Sources and provenance are prepared
+All datasets must pass validation together. The autonomous-province helpers
+recognize the category without regard to case, supporting both the original
+`Provincia autonoma` spelling and the `provincia autonoma` spelling used in the
+2026-11-06 Garda archive. Returned `tipologia` values preserve the source spelling;
+neither source files nor generated tables are rewritten to enforce capitalization.
+Regression tests cover both spellings, mixed capitalization, both public helpers
+and exclusion of ordinary provinces. Run the complete library suite before
+accepting an update; schema and relationship validation alone do not establish
+public API compatibility. Sources and provenance are prepared
 in a temporary sibling directory, validated and converted before a directory swap.
 A handled swap failure restores the previous directory. No files are replaced on
 HTTP, archive, checksum, schema or data validation errors. As with ordinary

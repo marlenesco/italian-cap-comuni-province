@@ -33,7 +33,7 @@ import {
  * Classe principale per la gestione completa di regioni, province e comuni italiani
  */
 class ComuniItaliani {
-  private readonly PROVINCIA_AUTONOMA = 'Provincia autonoma';
+  private readonly PROVINCIA_AUTONOMA = 'provincia autonoma';
   private regioni: Regione[] = [];
   private province: Provincia[] = [];
   private comuni: Comune[] = [];
@@ -260,7 +260,7 @@ class ComuniItaliani {
 
   getProvinceAutonome(): Provincia[] {
     return this.province
-      .filter((p) => p.tipologia === this.PROVINCIA_AUTONOMA)
+      .filter((p) => p.tipologia.toLowerCase() === this.PROVINCIA_AUTONOMA)
       .sort((a, b) => a.nome.localeCompare(b.nome));
   }
 
@@ -272,7 +272,7 @@ class ComuniItaliani {
     codiceRegione: string;
   }> {
     const provinceAutonome = this.province
-      .filter((p) => p.tipologia === this.PROVINCIA_AUTONOMA)
+      .filter((p) => p.tipologia.toLowerCase() === this.PROVINCIA_AUTONOMA)
       .map((p) => ({
         codice: p.sigla, // BZ, TN
         nome: p.nome,

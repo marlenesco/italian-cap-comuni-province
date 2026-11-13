@@ -11,17 +11,6 @@ export const tables = Object.keys(schemas);
 export const sha256 = (buffer) => createHash('sha256').update(buffer).digest('hex');
 export const readDatasets = (directory) => Object.fromEntries(tables.map((name) => [name, JSON.parse(readFileSync(join(directory, `${name}.json`), 'utf8'))]));
 
-export function apiCompatibilityErrors(data) {
-  // Existing public helpers match this category with a case-sensitive comparison.
-  return data.gi_province
-    .filter((row) => row.tipologia_provincia.toLowerCase() === 'provincia autonoma' && row.tipologia_provincia !== 'Provincia autonoma')
-    .map((row) => `${row.sigla_provincia}: "${row.tipologia_provincia}" is incompatible with the existing autonomous-province APIs; review this source change separately`);
-}
-
-export function verifyApiCompatibility(data) {
-  const errors = apiCompatibilityErrors(data);
-  if (errors.length) throw new Error(errors.join('; '));
-}
 const fail = (message) => { throw new Error(message); };
 const requireValue = (condition, message) => { if (!condition) fail(message); };
 const numeric = (value) => /^\d+(?:\.\d+)?$/.test(value) && Number.isFinite(Number(value));
