@@ -28,6 +28,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -43,6 +44,7 @@ jobs:
           appendFileSync(process.env.GITHUB_OUTPUT, `changed=${report.changed}\n`);
           NODE
       - name: Verify data and compatibility
+        if: steps.data.outputs.changed == 'true'
         run: |
           npm run data:verify
           npm test
@@ -76,18 +78,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-        run: |
-          hash=$(node -p "require('./src/data/provenance.json').archiveSha256.slice(0, 12)")
-          branch="automation/garda-$hash"
-          pr=$(gh pr list --repo "$REPOSITORY" --head "$branch" --base "$DEFAULT_BRANCH" --state open --json number --jq '.[0].number // empty')
-          if [ -n "$pr" ]; then
-            echo "An update PR already exists: #$pr"
-            exit 0
-          fi
-          git switch -c "$branch"
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/data/gi_comuni_cap.json src/data/gi_province.json src/data/gi_regioni.json src/data/provenance.json
-          git commit -m "Update Garda Informatica geographic datasets"
-          git push origin "HEAD:refs/heads/$branch"
-          gh pr create --repo "$REPOSITORY" --base "$DEFAULT_BRANCH" --head "$branch" --title "Update Garda Informatica geographic datasets" --body-file "$RUNNER_TEMP/dataset-report.json.md"
+        run: node scripts/data/propose-pr.mjs

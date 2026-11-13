@@ -166,20 +166,36 @@ file compressed separately; they are not tarball or single-entry download sizes.
 ## GitHub workflow and review
 
 `.github/workflows/data-update.yml` runs weekly on Monday at 06:23 UTC and can be
-started manually. It downloads and validates an update, generates tables through
-the build/test lifecycle, runs compatibility checks, uploads full JSON/Markdown
-reports and puts the summary in the job summary. The PR body includes source date,
+started manually from **Actions → Propose dataset updates → Run workflow**.
+Scheduled runs use the repository's default branch; the workflow must be present
+there and Actions must be enabled. It downloads and validates the archive, then
+runs build and compatibility checks when the data changed. Every successful
+comparison uploads full JSON/Markdown reports and puts the summary in the job
+summary. The PR body includes source date,
 archive and dataset digests, byte/record differences and validation status; the
 full artifact includes individual administrative and CAP changes.
 
 PR creation is opt-in: set the repository variable `ENABLE_DATA_UPDATE_PRS=true`
-for scheduled proposals, or enable `create_pr` for a manual run. GitHub must allow
+for scheduled proposals, or enable `create_pr` for a manual run (default: `false`).
+Without that opt-in, source changes stay in the temporary runner workspace; only
+reports are retained, and no repository branch or commit is created. GitHub must allow
 Actions to create pull requests. Scheduled workflows in forks may need enabling.
-Each archive gets a dedicated checksum-derived branch; an existing open proposal
-is reused without overwriting maintainer edits. Concurrency is serialized. Only
-contents and pull-request write permissions are granted to the update job; no
-credentials are printed. PRs created with `GITHUB_TOKEN` may not trigger other
-PR workflows, so this workflow performs its own checks before creating the proposal.
+Branches and PRs target the repository running the workflow. Installing it in a
+fork does not create proposals in the upstream repository.
+
+Each archive gets a dedicated checksum-derived branch. Existing open, closed or
+merged proposals are respected without rewriting commits or reopening a rejected
+update. If a previous run pushed the branch but failed to create its PR, a retry
+reuses it only when the source bytes and provenance match, allowing acquisition
+timestamps to differ. Other branch edits require manual review. No force push is
+used. Concurrency is serialized. Only contents and pull-request write permissions
+are granted to the update job; no credentials are printed.
+
+GitHub currently requires approval for PR workflows triggered by `GITHUB_TOKEN`
+when the PR is opened, updated or reopened. This workflow performs its own checks
+before creating a proposal. Maintainers can approve any subsequent PR checks, or
+use a GitHub App for fully automatic PR checks; see
+[GitHub's workflow-trigger documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
 There is no automatic merge, version bump, release or npm publication.
 
 To roll back, restore all three source files and `provenance.json` together from a
