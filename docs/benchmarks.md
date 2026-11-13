@@ -2,27 +2,29 @@
 
 Measured on **2026-11-13**. The comparison uses two representations of the
 **same geographic data**, not two dataset releases. The tabular representation
-reduces the measured npm tarball by **23.83%** and the complete `dist` directory
-by **71.44%**. CJS initialization is faster in this environment, name search is
-essentially unchanged, and the measured post-GC heap delta increases by **2.46%**.
+reduces the measured npm tarball by **23.82%** and the complete `dist` directory
+by **71.43%**. CJS initialization is faster in this environment, name search is
+essentially unchanged, and the measured post-GC heap delta increases by **2.48%**.
 
 ## Compared snapshots
 
 - **Before:** source revision `0458998`, with the original object-array JSON
   copied unchanged into `dist` by tsup's `copy` loader.
 - **After:** the tabular implementation in `8e135ff`, with the maintenance,
-  packaging and documentation changes committed through `eee6c03`. Original
+  packaging and documentation changes committed through `0a1e888`. Original
   JSON remains in `src/data`; the build generates shared `columns`/`rows` assets.
   Tiny CJS bridges load the same JSON from both module formats. Normalization
-  reads rows directly; public APIs, indices and search algorithms are unchanged.
+  reads rows directly; public signatures, outputs for the compared source
+  snapshot, indices and search algorithms are unchanged. Autonomous-province
+  helpers also recognize category casing changes in future source updates.
 
 Both snapshots use 8,456 municipality/CAP rows, 110 provinces and 20 regions.
 The source columns number 17, 7 and 7 respectively. The newer Garda archive
 evaluated during maintenance-tool development is **not** part of this comparison.
 
-These are historical measurements captured before this report was added.
-Later README or package metadata edits can change tarball sizes without changing
-runtime assets. The benchmark harness is [scripts/benchmark.mjs](../scripts/benchmark.mjs).
+These measurements describe the recorded revisions rather than tracking future
+`HEAD`. Later README or package metadata edits can change tarball sizes without
+changing runtime assets. The benchmark harness is [scripts/benchmark.mjs](../scripts/benchmark.mjs).
 
 ## Before and after
 
@@ -48,14 +50,14 @@ include their trailing newline.
 | --- | ---: | ---: | ---: |
 | Original source JSON | 5,626,167 | 5,626,167 | 0.00% |
 | Minified original source JSON | 4,093,684 | 4,093,684 | 0.00% |
-| All runtime assets | 5,667,246 | 1,530,239 | -73.00% |
-| Complete `dist` | 5,782,998 | 1,651,805 | -71.44% |
-| npm tarball | 456,498 | 347,697 | -23.83% |
-| Unpacked npm package | 5,799,541 | 1,669,836 | -71.21% |
-| Runtime assets, gzip | 427,196 | 318,418 | -25.46% |
+| All runtime assets | 5,667,246 | 1,530,295 | -73.00% |
+| Complete `dist` | 5,782,998 | 1,651,979 | -71.43% |
+| npm tarball | 456,498 | 347,750 | -23.82% |
+| Unpacked npm package | 5,799,541 | 1,670,037 | -71.20% |
+| Runtime assets, gzip | 427,196 | 318,420 | -25.46% |
 | Runtime assets, Brotli | 267,497 | 227,855 | -14.82% |
-| Complete `dist`, gzip | 452,132 | 344,342 | -23.84% |
-| Complete `dist`, Brotli | 289,780 | 250,981 | -13.39% |
+| Complete `dist`, gzip | 452,132 | 344,368 | -23.83% |
+| Complete `dist`, Brotli | 289,780 | 251,017 | -13.38% |
 
 **Runtime assets** include both JS entry points, every distributed JSON file and
 the three CJS bridges where present; shared JSON is counted once. **Complete
@@ -78,13 +80,13 @@ across processes. Search rows below use the CJS consumer for a comparable baseli
 
 | Metric | Before | After | Change |
 | --- | ---: | ---: | ---: |
-| CJS import and initialization, ms | 29.234 | 19.652 | -32.78% |
-| CJS post-GC heap delta, bytes | 9,053,328 | 9,276,200 | +2.46% |
-| CAP lookup, ns/call | 20.664 | 21.586 | +4.46% |
-| ISTAT lookup, ns/call | 20.627 | 18.480 | -10.41% |
-| Name search, ms/call | 7.719 | 7.652 | -0.86% |
-| ESM import and initialization, ms | Not measured: import fails | 19.721 | Not comparable |
-| ESM post-GC heap delta, bytes | Not measured: import fails | 9,316,168 | Not comparable |
+| CJS import and initialization, ms | 25.729 | 17.666 | -31.34% |
+| CJS post-GC heap delta, bytes | 9,053,480 | 9,277,688 | +2.48% |
+| CAP lookup, ns/call | 21.257 | 20.071 | -5.58% |
+| ISTAT lookup, ns/call | 19.001 | 18.867 | -0.70% |
+| Name search, ms/call | 7.381 | 7.244 | -1.87% |
+| ESM import and initialization, ms | Not measured: import fails | 18.308 | Not comparable |
+| ESM post-GC heap delta, bytes | Not measured: import fails | 9,317,784 | Not comparable |
 
 The baseline's native Node ESM import fails with
 `ERR_IMPORT_ATTRIBUTE_MISSING` because the copied JSON imports have no JSON
@@ -96,10 +98,10 @@ For context, nearest-rank quartiles (the 4th and 12th sorted observations out of
 
 | Metric | Before, Q1–Q3 | After, Q1–Q3 |
 | --- | ---: | ---: |
-| Import and initialization, ms | 27.840–31.353 | 18.863–20.097 |
-| CAP lookup, ns/call | 19.222–22.417 | 19.732–22.900 |
-| ISTAT lookup, ns/call | 19.341–24.571 | 17.680–22.719 |
-| Name search, ms/call | 7.585–8.027 | 7.472–7.965 |
+| Import and initialization, ms | 25.408–27.325 | 17.272–18.443 |
+| CAP lookup, ns/call | 19.840–21.902 | 18.619–20.721 |
+| ISTAT lookup, ns/call | 17.196–20.244 | 18.642–20.634 |
+| Name search, ms/call | 7.197–7.720 | 7.149–7.551 |
 
 ## Methodology
 
@@ -180,8 +182,8 @@ See [dataset maintenance](datasets.md) for the generation and validation workflo
   CJS and ESM loader setup differs, so compare formats separately.
 - The heap result is a **post-GC delta**, not total process memory, RSS, external
   allocations or peak heap. It includes module loading and retained data/indices,
-  and is sensitive to V8 and GC behavior. The observed increase is 222,872 bytes
-  (+2.46%); no memory reduction is claimed.
+  and is sensitive to V8 and GC behavior. The observed increase is 224,208 bytes
+  (+2.48%); no memory reduction is claimed.
 - CAP and ISTAT lookup quartiles overlap. Their nanosecond averages are sensitive
   to JIT and timer noise. The search algorithms are unchanged, and these samples
   establish neither a lookup speedup nor a substantial lookup regression. Name
