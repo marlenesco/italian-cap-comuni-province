@@ -26,6 +26,10 @@ These measurements describe the recorded revisions rather than tracking future
 `HEAD`. Later README or package metadata edits can change tarball sizes without
 changing runtime assets. The benchmark harness is [scripts/benchmark.mjs](../scripts/benchmark.mjs).
 
+Later development-tool upgrades can also change emitted JavaScript and source-map
+sizes. The figures below remain measurements of the recorded snapshots; rerun the
+harness to measure a newer toolchain.
+
 ## Before and after
 
 All size values are **UTF-8/file bytes**, not filesystem allocation or rounded MB.
