@@ -43,8 +43,8 @@
   ],
   "scripts": {
     "build": "tsup",
-    "build:watch": "tsup --watch",
-    "dev": "tsup --watch",
+    "build:watch": "tsup --watch src --watch scripts/data",
+    "dev": "tsup --watch src --watch scripts/data",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build && npm run test",
     "test": "vitest run",
@@ -53,7 +53,17 @@
     "test:ui": "vitest --ui",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "data:build": "node scripts/data/build.mjs",
+    "pretest": "npm run data:build",
+    "pretype-check": "npm run data:build",
+    "prepack": "npm run build",
+    "benchmark": "node scripts/benchmark.mjs",
+    "test:package": "node scripts/test-package.mjs",
+    "pretest:coverage": "npm run data:build",
+    "test:build": "node scripts/test-build.mjs",
+    "pretest:watch": "npm run data:build",
+    "pretest:ui": "npm run data:build"
   },
   "engines": {
     "node": ">=18"

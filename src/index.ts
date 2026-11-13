@@ -1,6 +1,6 @@
-import comuniRawData from './data/gi_comuni_cap.json';
-import provinceRawData from './data/gi_province.json';
-import regioniRawData from './data/gi_regioni.json';
+import comuniRawData from './generated/gi_comuni_cap.json';
+import provinceRawData from './generated/gi_province.json';
+import regioniRawData from './generated/gi_regioni.json';
 import type {
   ComuneRaw,
   ProvinciaRaw,
@@ -13,11 +13,7 @@ import type {
   SearchFilters,
   StatsCompleto,
 } from './types';
-import {
-  normalizeComuneData,
-  normalizeProvinciaData,
-  normalizeRegioneData,
-} from './utils/normalize';
+import { loadComuni, loadProvince, loadRegioni } from './utils/tabular';
 import {
   searchComuni as searchComuniUtil,
   searchProvince as searchProvinceUtil,
@@ -61,14 +57,9 @@ class ComuniItaliani {
     if (this.initialized) return;
 
     try {
-      // Carica e normalizza tutti e tre i dataset
-      const rawRegioni = regioniRawData as RegioneRaw[];
-      const rawProvince = provinceRawData as ProvinciaRaw[];
-      const rawComuni = comuniRawData as ComuneRaw[];
-
-      this.regioni = rawRegioni.map((raw) => normalizeRegioneData(raw));
-      this.province = rawProvince.map((raw) => normalizeProvinciaData(raw));
-      this.comuni = rawComuni.map((raw) => normalizeComuneData(raw));
+      this.regioni = loadRegioni(regioniRawData);
+      this.province = loadProvince(provinceRawData);
+      this.comuni = loadComuni(comuniRawData);
 
       this.createIndices();
       this.initialized = true;

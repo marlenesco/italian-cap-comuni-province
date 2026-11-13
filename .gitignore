@@ -68,3 +68,6 @@ docs/build/
 
 # === Optional: Lock files (se usi npm) ===
 # package-lock.json  # Rimuovi il commento se usi solo
+
+# Generated runtime tables
+src/generated/
