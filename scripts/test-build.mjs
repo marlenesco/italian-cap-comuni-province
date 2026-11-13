@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
+import { stripVTControlCharacters } from 'node:util';
 
 const directory = mkdtempSync(join(tmpdir(), 'iccp-build-'));
 const tsup = resolve('node_modules/.bin/tsup');
@@ -47,9 +48,11 @@ try {
   let resolveReady;
   const ready = new Promise((resolve) => { resolveReady = resolve; });
   const capture = (chunk) => {
-    const text = chunk.toString(); output += text;
-    changes += (text.match(/CJS ⚡️ Build success/g) || []).length;
-    if (output.includes('Watching for changes')) resolveReady();
+    output += chunk.toString();
+    // CI enables ANSI colors; normalize accumulated output, including split chunks.
+    const text = stripVTControlCharacters(output);
+    changes = (text.match(/CJS ⚡️ Build success/g) || []).length;
+    if (text.includes('Watching for changes')) resolveReady();
   };
   watcher.stdout.on('data', capture); watcher.stderr.on('data', capture);
   let timeout;
