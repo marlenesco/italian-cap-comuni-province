@@ -16,7 +16,10 @@ export async function download(url, limit, fetcher = fetch) {
         url = new URL(location, address).href;
         continue;
       }
-      if (!response.ok || !response.body) throw new Error(`Download failed: HTTP ${response.status}`);
+      if (!response.ok || !response.body) {
+        await response.body?.cancel();
+        throw new Error(`Download failed: HTTP ${response.status}`);
+      }
       const declared = response.headers.get('content-length');
       if (declared !== null && (!/^\d+$/.test(declared) || +declared > limit)) { await response.body.cancel(); throw new Error('Invalid download size'); }
       const chunks = [];
@@ -30,6 +33,9 @@ export async function download(url, limit, fetcher = fetch) {
       return { buffer: Buffer.concat(chunks), url: address.href };
     }
     throw new Error('Too many redirects');
+  } catch (error) {
+    controller.abort();
+    throw error;
   } finally { clearTimeout(timer); }
 }
 

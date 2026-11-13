@@ -146,6 +146,17 @@ describe('Source discovery and HTTP failures', () => {
     expect((await download(sourcePage, 100, fetcher)).buffer.toString()).toBe('ok');
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
+  it('cancels HTTP error bodies and aborts failed requests', async () => {
+    const cancel = vi.fn();
+    let signal;
+    const fetcher = async (_url, options) => {
+      signal = options.signal;
+      return new Response(new ReadableStream({ cancel }), { status: 503 });
+    };
+    await expect(download(sourcePage, 100, fetcher)).rejects.toThrow(/HTTP 503/);
+    expect(cancel).toHaveBeenCalledTimes(1);
+    expect(signal.aborted).toBe(true);
+  });
   it('rejects HTTP errors, invalid sizes, incomplete responses and redirect violations', async () => {
     for (const response of [new Response('no', { status: 503 }), new Response('x', { headers: { 'content-length': '1000' } }), new Response('x', { headers: { 'content-length': '3' } }), new Response(''), new Response('abc'), new Response(null, { status: 302 }), new Response(null, { status: 302, headers: { location: 'https://evil.example' } })]) await expect(download(sourcePage, 2, async () => response)).rejects.toThrow();
     await expect(download('https://evil.example', 100)).rejects.toThrow(/URL/);
