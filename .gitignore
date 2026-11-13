@@ -71,3 +71,6 @@ docs/build/
 
 # Generated runtime tables
 src/generated/
+
+# Recoverable interrupted dataset transactions
+src/.dataset-update-*/
