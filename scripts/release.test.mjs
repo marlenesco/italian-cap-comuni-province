@@ -33,8 +33,45 @@ describe('Scoped release preparation', () => {
   });
 
   it.each(['src/data/gi_comuni_cap.json', 'src/index.ts', 'scripts/data/build.mjs', 'scripts/data/schema.mjs', 'tsup.config.ts', 'package.json', 'LICENSE'])('requires a newer version for changes to %s', (path) => {
-    expect(() => checkVersionChange(manifest, manifest, [path])).toThrow(/newer package version/);
-    expect(() => checkVersionChange(manifest, { version: '1.1.99' }, [path])).not.toThrow();
+    const base = path === 'package.json' ? { ...manifest, description: 'Previous package description' } : manifest;
+    expect(() => checkVersionChange(manifest, base, [path])).toThrow(/newer package version/);
+    expect(() => checkVersionChange(manifest, { ...base, version: '1.1.99' }, [path])).not.toThrow();
+  });
+
+  it.each([
+    ['devDependencies', { ...manifest.devDependencies, vitest: '^5.2.0' }],
+    ['overrides', { '@typescript-eslint/typescript-estree': { minimatch: '^11.0.2' } }],
+    ['scripts', { ...manifest.scripts, audit: 'npm audit --include=dev --json' }],
+  ])('allows a %s maintenance change without changing the package version', (key, value) => {
+    const updated = { ...manifest, [key]: value };
+    expect(updated).not.toEqual(manifest);
+    const original = structuredClone(manifest);
+    expect(() => checkVersionChange(updated, manifest, ['package.json', 'package-lock.json'])).not.toThrow();
+    expect(manifest).toEqual(original);
+  });
+
+  it.each([
+    { main: './dist/next.js' },
+    { exports: { '.': './dist/next.js' } },
+    { engines: { node: '>=24' } },
+    { dependencies: { 'runtime-dependency': '^1.0.0' } },
+    { scripts: { ...manifest.scripts, build: 'tsup --minify' } },
+    { scripts: { ...manifest.scripts, prepack: 'node scripts/other-build.mjs' } },
+  ])('still requires a release for runtime metadata or packaging changes: %j', (changes) => {
+    const updated = { ...manifest, ...changes };
+    expect(() => checkVersionChange(updated, manifest, ['package.json'])).toThrow(/newer package version/);
+    const nextVersion = manifest.version.replace(/\d+$/, (patch) => String(Number(patch) + 1));
+    expect(() => checkVersionChange({ ...updated, version: nextVersion }, manifest, ['package.json'])).not.toThrow();
+  });
+
+  it('requires a version bump when maintenance also changes a runtime source', () => {
+    const updated = { ...manifest, devDependencies: { ...manifest.devDependencies, vitest: '^5.2.0' } };
+    expect(() => checkVersionChange(updated, manifest, ['package.json', 'src/utils/search.ts'])).toThrow(/newer package version/);
+  });
+
+  it('allows manifest formatting and property-order changes without a release', () => {
+    const reordered = Object.fromEntries(Object.entries(manifest).reverse());
+    expect(() => checkVersionChange(reordered, manifest, ['package.json'])).not.toThrow();
   });
 
   it('compares version components numerically and allows documentation-only merges', () => {

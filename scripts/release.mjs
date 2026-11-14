@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 
 const packageName = '@marlenesco/italian-cap-comuni-province';
 const repository = 'git+https://github.com/marlenesco/italian-cap-comuni-province.git';
@@ -24,10 +25,20 @@ export function validatePackage(manifest, lock) {
   }
 }
 
+function releaseMetadata(manifest) {
+  const metadata = { ...manifest, scripts: { ...manifest.scripts } };
+  delete metadata.devDependencies;
+  delete metadata.overrides;
+  delete metadata.scripts.audit;
+  return metadata;
+}
+
 export function checkVersionChange(manifest, base, paths) {
-  // README-only and tooling-only changes do not require a new npm version.
-  const distributed = paths.some((path) => /^(src\/(?!test\/|generated\/)|scripts\/data\/(build|schema)\.mjs$|tsup\.config\.ts$|package\.json$|LICENSE$)/.test(path));
-  if (!distributed) return;
+  // Development dependency maintenance alone does not create a new library release.
+  const sourceChanged = paths.some((path) => /^(src\/(?!test\/|generated\/)|scripts\/data\/(build|schema)\.mjs$|tsup\.config\.ts$|LICENSE$)/.test(path));
+  const metadataChanged = paths.includes('package.json')
+    && !isDeepStrictEqual(releaseMetadata(manifest), releaseMetadata(base));
+  if (!sourceChanged && !metadataChanged) return;
   const newer = stableVersion.test(base.version) && manifest.version.split('.').map(Number)
     .reduce((comparison, value, index) => comparison || Math.sign(value - Number(base.version.split('.')[index])), 0) > 0;
   if (!newer) throw new Error('Changes to distributed files require a newer package version in the PR');
