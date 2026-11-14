@@ -48,6 +48,7 @@ jobs:
         run: node scripts/release.mjs check-version "$BASE_SHA"
       - name: Validate data, API and packed consumers
         run: |
+          npm run audit
           npm run data:verify
           npm test
           npm run type-check

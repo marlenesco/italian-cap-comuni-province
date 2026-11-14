@@ -32,8 +32,9 @@ the provider. HTTPS remains the source authentication mechanism.
 
 ## Commands
 
-Use a supported Node.js LTS release and `npm ci`. Node.js 24 is the development
-and workflow reference.
+Use Node.js 22.12 or newer and `npm ci` for development. Node.js 24 is the
+development and workflow reference. The test toolchain's minimum does not change
+the published library's runtime Node.js requirement.
 
 | Command | Effect |
 | --- | --- |
@@ -130,6 +131,7 @@ unchanged. Original source JSON, provenance and maintenance scripts are not ship
 ## Validation before proposing an update
 
 ```sh
+npm run audit
 npm run data:verify
 npm test
 npm run type-check

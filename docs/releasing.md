@@ -53,8 +53,13 @@ The version is reviewed in the PR, rather than invented after merge:
 - For other distributed changes, run `npm version patch --no-git-tag-version
   --ignore-scripts` on the feature branch, using `minor` or `major` when appropriate.
 - The PR check rejects changes to runtime sources, build/data-generation helpers,
-  package metadata or the license without a numerically newer stable version.
-  Documentation-only or workflow-only changes can keep the version.
+  release metadata or the license without a numerically newer stable version.
+- Development dependencies, root npm overrides and the `audit` script can change
+  without a version bump when runtime sources and all other manifest fields stay
+  unchanged. This allows security maintenance while preparing an unpublished
+  version. Packaging scripts (`build`, `prepack`), runtime dependencies, entry
+  points and consumer Node.js requirements still require a newer version.
+  Documentation-only or workflow-only changes can also keep the version.
 - If the version is already public, publication is skipped. Registry failures other
   than an actual 404 stop the job. npm versions cannot be overwritten.
 - If another release merges before a dataset PR, rebase the proposal and adjust its
@@ -63,9 +68,10 @@ The version is reviewed in the PR, rather than invented after merge:
 Configure branch protection/rulesets to require the validation check and PR review;
 without that repository setting, a direct push can bypass the PR version policy.
 The release uses the exact triggering commit and the tarball produced by its
-validation job. It never downloads fresh Garda data during a release. Release
-runs are serialized with `queue: max` (up to 100 pending runs); they are not
-cancelled when a later merge arrives. PR runs use separate concurrency groups.
+validation job. The validation job audits all dependencies, including development
+packages, before any publication can proceed. It never downloads fresh Garda data
+during a release. Release runs are serialized with `queue: max` (up to 100 pending
+runs); they are not cancelled when a later merge arrives. PR runs use separate concurrency groups.
 The workflow does not create GitHub releases or tags; npm is the publication target.
 
 `queue: max` follows [GitHub's concurrency specification](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).
@@ -163,6 +169,7 @@ No local `npm publish` is needed.
 
 ```sh
 npm ci
+npm run audit
 npm run data:verify
 npm test
 npm run type-check
