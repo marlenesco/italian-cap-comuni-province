@@ -5,7 +5,7 @@
 This is the personal fork maintained by [marlenesco](https://github.com/marlenesco),
 based on [SpritzCoder's original project](https://github.com/spritzcoder/italian-cap-comuni-province).
 It uses the separate npm name `@marlenesco/italian-cap-comuni-province`; the original
-package and its ownership remain independent. Version **1.2.0** is prepared for the
+package and its ownership remain independent. Version **1.2.1** is prepared for the
 first scoped release and has **not been published yet**.
 
 A lightweight, performant TypeScript library providing access to all Italian municipalities, provinces, and regions with intelligent search capabilities, CAP validation, and autocomplete support.
@@ -37,7 +37,7 @@ To retain existing import paths, install the fork under the original name with a
 npm alias (available after the first scoped publication):
 
 ```bash
-npm install italian-cap-comuni-province@npm:@marlenesco/italian-cap-comuni-province@1.2.0
+npm install italian-cap-comuni-province@npm:@marlenesco/italian-cap-comuni-province@1.2.1
 ```
 
 See [Releasing the scoped fork](docs/releasing.md) for the version policy and the
@@ -486,7 +486,7 @@ through the [opt-in release workflow](docs/releasing.md).
 
 ## 📝 Changelog
 
-v1.2.0 - First scoped fork release (unpublished)
+v1.2.1 - First scoped fork release (unpublished)
 
 - Separate `@marlenesco` package identity, preserving the original project attribution
 - Lossless tabular runtime datasets and reviewable Garda update tooling
