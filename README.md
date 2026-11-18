@@ -5,15 +5,15 @@
 This is the personal fork maintained by [marlenesco](https://github.com/marlenesco),
 based on [SpritzCoder's original project](https://github.com/spritzcoder/italian-cap-comuni-province).
 It uses the separate npm name `@marlenesco/italian-cap-comuni-province`; the original
-package and its ownership remain independent. Version **1.2.1** is prepared for the
-first scoped release and has **not been published yet**.
+package and its ownership remain independent. Install the `latest` release for
+the current API and datasets.
 
-A lightweight, performant TypeScript library providing access to all Italian municipalities, provinces, and regions with intelligent search capabilities, CAP validation, and autocomplete support.
+A TypeScript library providing access to Italian municipalities, provinces, and regions with search, postal-code lookup, and autocomplete support. Browser code that only checks postal-code membership should use the compact `/cap` entry point.
 
 ## ✨ Features
 
 - 🚀 **High Performance**: Optimized searches with in-memory indices (O(1) lookups)
-- 📦 **Tree-shakable**: Import only what you need
+- 📦 **CAP-only Entry Point**: Check postal-code membership without loading geographic records
 - 🔍 **Smart Search**: Advanced algorithms with relevance scoring (Jaro-Winkler similarity)
 - 🎯 **TypeScript Native**: Full type safety and IntelliSense support
 - 📱 **Zero Dependencies**: No external libraries required
@@ -26,24 +26,87 @@ A lightweight, performant TypeScript library providing access to all Italian mun
 ## 📦 Installation
 
 ```bash
-npm install @marlenesco/italian-cap-comuni-province
+npm install @marlenesco/italian-cap-comuni-province@latest
 # or
-yarn add @marlenesco/italian-cap-comuni-province
+yarn add @marlenesco/italian-cap-comuni-province@latest
 # or
-pnpm add @marlenesco/italian-cap-comuni-province
+pnpm add @marlenesco/italian-cap-comuni-province@latest
 ```
 
 To retain existing import paths, install the fork under the original name with an
-npm alias (available after the first scoped publication):
+npm alias:
 
 ```bash
-npm install italian-cap-comuni-province@npm:@marlenesco/italian-cap-comuni-province@1.2.1
+npm install italian-cap-comuni-province@npm:@marlenesco/italian-cap-comuni-province@latest
 ```
 
-See [Releasing the scoped fork](docs/releasing.md) for the version policy and the
-GitHub merge-to-npm workflow. Publication is disabled until explicitly configured.
+See [Releasing the scoped fork](docs/releasing.md) for the release policy and the
+GitHub merge-to-npm workflow.
 
-## 🚀 Quick Start
+## Lightweight postal-code checks in the browser
+
+Use the CAP-only entry point from the `latest` release:
+
+```typescript
+import { hasCAP } from '@marlenesco/italian-cap-comuni-province/cap';
+
+hasCAP('00118'); // true
+hasCAP('99999'); // false
+hasCAP(' 00118 '); // true: surrounding whitespace is trimmed
+hasCAP('118'); // false: leading zeros must be preserved
+```
+
+`hasCAP(cap: string): boolean` checks membership in a generated collection of
+unique CAP strings. It imports no municipality, province, or region records and
+does not initialize the full API's geographic indexes. The collection is rebuilt
+from the same validated source data on every build, including dataset updates.
+The entry point supports both ESM and CommonJS and includes TypeScript types.
+
+This is **dataset membership**, not business coverage. Generic or historical CAPs
+accepted by an application may be absent from the source dataset; for example,
+`hasCAP('20100')` is false in the current snapshot. Applications must keep their
+supported-CAP rules separate. The existing root `isValidCAP` function only checks
+format and numeric range; its behavior is unchanged.
+
+The root entry point eagerly loads all geographic records and constructs their
+indexes, even with a named import such as `getComuniByCAP`. Tree-shaking does not
+isolate its postal codes. Upgrade and explicitly import `/cap` to get the compact
+check; an existing root import will retain its full cost. Use the full API on the
+server or where the complete geographic data is actually needed.
+
+`npm run test:package` measures isolated minified browser bundles from the installed
+tarball, compares the root lookup with `/cap`, and enforces CAP bundle limits of
+45,000 bytes minified and 14,000 bytes gzip. These are package-level measurements,
+not the size of an application's complete Next.js bundle.
+
+Measured on 2026-11-18 with the 4,671-CAP dataset (esbuild, browser target ES2020,
+minification enabled, Node.js gzip defaults):
+
+| Isolated membership check | Minified bytes | Gzip bytes |
+| --- | ---: | ---: |
+| Root `getComuniByCAP(cap).length > 0` | 1,500,685 | 315,265 |
+| `/cap` `hasCAP(cap)` | 37,458 | 10,744 |
+
+The CAP-only entry reduces this isolated gzip payload by **96.6%**. Exact bytes
+can change with the dataset or build toolchain; the limits above are regression
+budgets, not a claim about an application's final transfer size.
+
+### Download size and HTTP compression
+
+The 1.50 MB and 315.3 kB figures describe the **same full API bundle** before and
+after gzip compression. A browser receives the smaller payload only when the
+application's server or CDN negotiates compression and sends the JavaScript with
+`Content-Encoding: gzip` (or uses Brotli). It then decompresses and executes the
+full JavaScript. The npm library cannot configure the consuming application's
+HTTP response headers or guarantee its final chunk transfer size.
+
+For CAP membership, import `/cap` to reduce both the uncompressed code/data and
+the compressed transfer. For the full API, configure compression on the host and
+check the actual JavaScript response headers and transferred bytes in the browser
+Network panel. A dynamic import can defer a full API download, but it does not
+make that payload smaller.
+
+## 🚀 Full geographic API quick start
 
 ```typescript
 import {
@@ -54,13 +117,13 @@ import {
 
 // Search municipalities by name
 const results = searchComuni('Milano', { limit: 5 });
-console.log(results.item.nome); // "Milano"
+console.log(results[0]?.item.nome); // "Milano"
 
 // Find municipalities by postal code
-const comuni = getComuniByCAP('20100');
-console.log(comuni.nome); // "Milano"
+const comuni = getComuniByCAP('20121');
+console.log(comuni[0]?.nome); // "Milano"
 
-// Validate Italian postal codes
+// Validate format and numeric range, not dataset membership
 console.log(isValidCAP('20100')); // true
 console.log(isValidCAP('99999')); // false
 ```
@@ -436,7 +499,8 @@ getSuggestions(query, limit); // Get autocomplete suggestions
 - **Search speed**: O(1) for CAP and ISTAT codes, O(n) optimized for names
 - **Benchmarks**: [Measured before/after results, methodology and limitations](docs/benchmarks.md).
   Reproduce measurements with `node scripts/benchmark.mjs` (see [dataset maintenance](docs/datasets.md)).
-- **Tree-shaking**: Full support, import only used functions
+- **Browser imports**: Use `/cap` for compact membership checks. Named imports from
+  the root entry point retain the full datasets and eager geographic indexes.
 
 ## 📊 Data Source
 
@@ -483,29 +547,6 @@ See [Dataset maintenance](docs/datasets.md) for local ZIP import, change reports
 the opt-in weekly GitHub update proposals, provenance and rollback. Maintainers
 review updates before merging. The fork can publish new versions after merge
 through the [opt-in release workflow](docs/releasing.md).
-
-## 📝 Changelog
-
-v1.2.1 - First scoped fork release (unpublished)
-
-- Separate `@marlenesco` package identity, preserving the original project attribution
-- Lossless tabular runtime datasets and reviewable Garda update tooling
-- Opt-in GitHub publication after merge; no runtime API changes
-
-Upstream release history:
-
-v1.1.1 - Province autonome and data updated
-
-- Data update to 2026-08-21
-
-v1.1.0 - Province autonome and data updated
-
-- Data update to 2026-31-01
-- Added getRegioniAndProvinceAutonome and getProvinceAutonome functions
-
-v1.0.0 - Initial Release
-
-- 🎉 First stable release with complete Italian locations data
 
 ## 📄 License
 

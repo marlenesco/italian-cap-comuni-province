@@ -1,6 +1,6 @@
 {
   "name": "@marlenesco/italian-cap-comuni-province",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Maintained fork of italian-cap-comuni-province: Italian municipalities, provinces, postal codes, search and autocomplete",
   "keywords": [
     "italy",
@@ -34,6 +34,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
+    },
+    "./cap": {
+      "types": "./dist/cap.d.ts",
+      "import": "./dist/cap.mjs",
+      "require": "./dist/cap.js"
     }
   },
   "files": [

@@ -29,6 +29,14 @@ is limited to this development dependency; parser integration tests exercise
 project-service allowlist matching, including hidden files and rejected paths.
 Remove it when typescript-eslint declares a compatible patched dependency.
 
+On 2026-11-18, GitHub withdrew the Picomatch advisory
+[GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf).
+A fresh audit of the existing locked dependencies against the public npm registry
+reported zero vulnerabilities. This is an advisory-status change, not an upstream
+parser fix. Picomatch is used by development tools, not the published runtime.
+Keep dependency auditing enabled and do not allow untrusted users to supply glob
+patterns to development tooling.
+
 The build and tests generate local runtime tables automatically from the original
 JSON files in `src/data`. Do not commit `src/generated`, `dist`, ZIP archives or
 local benchmark/report artifacts. Do not change geographic data as part of a

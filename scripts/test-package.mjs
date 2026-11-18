@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { build } from 'esbuild';
 import { runInNewContext } from 'node:vm';
+import { testCAPPackage } from './test-cap-package.mjs';
 
 const manifest = JSON.parse(readFileSync('package.json', 'utf8'));
 const packageName = manifest.name;
@@ -71,5 +72,6 @@ try {
   const { exports: _exports, ...browserResult } = cjsResult;
   assert.deepEqual(JSON.parse(JSON.stringify(context.result)), JSON.parse(JSON.stringify(browserResult)));
   assert(readdirSync(join(packageDirectory, 'dist')).filter((f) => f.endsWith('.cjs')).length === 3);
+  await testCAPPackage(directory, packageName, cjs.getAllComuni().map((comune) => comune.cap), run);
   console.log(`Packed consumers passed: CJS, ESM and browser bundle (${packed.size} packed / ${packed.unpackedSize} unpacked bytes).`);
 } finally { rmSync(directory, { recursive: true, force: true }); }
