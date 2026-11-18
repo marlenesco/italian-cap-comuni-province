@@ -9,7 +9,7 @@ const datasets = ['gi_comuni_cap', 'gi_province', 'gi_regioni'];
 export default defineConfig(() => {
   buildData();
   return {
-    entry: ['src/index.ts'],
+    entry: ['src/index.ts', 'src/cap.ts'],
     format: ['cjs', 'esm'],
     dts: true,
     clean: true,

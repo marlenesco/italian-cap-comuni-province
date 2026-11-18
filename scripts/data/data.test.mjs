@@ -31,6 +31,28 @@ describe('Offline validation and deterministic generation', () => {
     expect(verifyDatasets(data)).toEqual(Object.fromEntries(tables.map((name) => [name, data[name].length])));
     expect(verifyLocal()).toEqual(verifyDatasets(readDatasets('src/data')));
   });
+  it('generates sorted unique CAPs and refreshes them when the source changes', () => {
+    const data = fixture();
+    data.gi_comuni_cap.push({ ...data.gi_comuni_cap[0], cap: '00118' });
+    const { directory, root } = setup(data);
+    const target = join(root, 'generated');
+    buildData(directory, target);
+    const path = join(target, 'cap.json');
+    expect(JSON.parse(readFileSync(path))).toEqual(['00118', '35031']);
+    const before = snapshot(target);
+    buildData(directory, target);
+    expect(snapshot(target)).toEqual(before);
+    data.gi_comuni_cap.pop();
+    writeFileSync(join(directory, 'gi_comuni_cap.json'), JSON.stringify(data.gi_comuni_cap));
+    buildData(directory, target);
+    expect(JSON.parse(readFileSync(path))).toEqual(['35031']);
+  });
+  it('surfaces unreadable generated assets instead of treating them as missing', () => {
+    const { directory, root } = setup();
+    const target = join(root, 'generated');
+    mkdirSync(join(target, 'cap.json'), { recursive: true });
+    expect(() => buildData(directory, target)).toThrow(/EISDIR/);
+  });
   for (const name of tables) {
     it(`rejects missing, empty, nonobject and incompatible ${name} schemas`, () => {
       for (const value of [undefined, [], [null], [[]], [{ unexpected: '' }]]) {

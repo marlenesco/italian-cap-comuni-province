@@ -11,9 +11,14 @@ const tsup = resolve('node_modules/.bin/tsup');
 let watcher;
 let output = '';
 let changes = 0;
+let fixtureCAP;
 const read = (path) => JSON.parse(readFileSync(join(directory, path), 'utf8'));
 const requireResult = () => {
-  const result = spawnSync(process.execPath, ['-e', "console.log(require('./dist').getAllComuni()[0].nome)"], { cwd: directory, encoding: 'utf8' });
+  const result = spawnSync(process.execPath, ['-e', `
+    const assert = require('node:assert/strict');
+    assert(require('./dist/cap.js').hasCAP(${JSON.stringify(fixtureCAP)}));
+    console.log(require('./dist').getAllComuni()[0].nome);
+  `], { cwd: directory, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   return result.stdout.trim();
 };
@@ -34,10 +39,11 @@ try {
   symlinkSync(resolve('node_modules'), join(directory, 'node_modules'), 'dir');
   const source = read('src/data/gi_comuni_cap.json');
   const fixtureCode = source[0].codice_istat;
-  const fixtureCAPs = new Set(source.filter((row) => row.codice_istat === fixtureCode).map((row) => row.cap));
-  let fixtureCAP = 10;
-  while (fixtureCAPs.has(String(fixtureCAP).padStart(5, '0'))) fixtureCAP++;
-  source.push({ ...source[0], cap: String(fixtureCAP).padStart(5, '0') });
+  const fixtureCAPs = new Set(source.map((row) => row.cap));
+  let capNumber = 10;
+  while (fixtureCAPs.has(String(capNumber).padStart(5, '0'))) capNumber++;
+  fixtureCAP = String(capNumber).padStart(5, '0');
+  source.push({ ...source[0], cap: fixtureCAP });
   for (const row of source) if (row.codice_istat === fixtureCode) row.denominazione_ita = 'Abano Terme (build fixture)';
   writeFileSync(join(directory, 'src/data/gi_comuni_cap.json'), JSON.stringify(source));
   const result = spawnSync(process.execPath, [tsup], { cwd: directory, encoding: 'utf8', timeout: 30000 });
@@ -60,6 +66,9 @@ try {
   // Allow the initial watched build to finish before modifying its source.
   await delay(1500);
   const before = changes;
+  do { capNumber++; } while (fixtureCAPs.has(String(capNumber).padStart(5, '0')));
+  fixtureCAP = String(capNumber).padStart(5, '0');
+  source[source.length - 1].cap = fixtureCAP;
   for (const row of source) if (row.codice_istat === fixtureCode) row.denominazione_ita = 'Abano Terme (watch fixture)';
   writeFileSync(join(directory, 'src/data/gi_comuni_cap.json'), JSON.stringify(source));
   await waitForBuild(before + 1);
