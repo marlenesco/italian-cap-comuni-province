@@ -5,8 +5,8 @@
 This is the personal fork maintained by [marlenesco](https://github.com/marlenesco),
 based on [SpritzCoder's original project](https://github.com/spritzcoder/italian-cap-comuni-province).
 It uses the separate npm name `@marlenesco/italian-cap-comuni-province`; the original
-package and its ownership remain independent. This branch prepares version
-**1.3.0**, adding a dedicated CAP-only entry point.
+package and its ownership remain independent. Install the `latest` release for
+the current API and datasets.
 
 A TypeScript library providing access to Italian municipalities, provinces, and regions with search, postal-code lookup, and autocomplete support. Browser code that only checks postal-code membership should use the compact `/cap` entry point.
 
@@ -26,26 +26,26 @@ A TypeScript library providing access to Italian municipalities, provinces, and 
 ## 📦 Installation
 
 ```bash
-npm install @marlenesco/italian-cap-comuni-province
+npm install @marlenesco/italian-cap-comuni-province@latest
 # or
-yarn add @marlenesco/italian-cap-comuni-province
+yarn add @marlenesco/italian-cap-comuni-province@latest
 # or
-pnpm add @marlenesco/italian-cap-comuni-province
+pnpm add @marlenesco/italian-cap-comuni-province@latest
 ```
 
 To retain existing import paths, install the fork under the original name with an
-npm alias (available after the first scoped publication):
+npm alias:
 
 ```bash
-npm install italian-cap-comuni-province@npm:@marlenesco/italian-cap-comuni-province@1.2.1
+npm install italian-cap-comuni-province@npm:@marlenesco/italian-cap-comuni-province@latest
 ```
 
-See [Releasing the scoped fork](docs/releasing.md) for the version policy and the
-GitHub merge-to-npm workflow. Publication is disabled until explicitly configured.
+See [Releasing the scoped fork](docs/releasing.md) for the release policy and the
+GitHub merge-to-npm workflow.
 
 ## Lightweight postal-code checks in the browser
 
-Available from version **1.3.0**:
+Use the CAP-only entry point from the `latest` release:
 
 ```typescript
 import { hasCAP } from '@marlenesco/italian-cap-comuni-province/cap';
@@ -547,29 +547,6 @@ See [Dataset maintenance](docs/datasets.md) for local ZIP import, change reports
 the opt-in weekly GitHub update proposals, provenance and rollback. Maintainers
 review updates before merging. The fork can publish new versions after merge
 through the [opt-in release workflow](docs/releasing.md).
-
-## 📝 Changelog
-
-v1.2.1 - First scoped fork release (unpublished)
-
-- Separate `@marlenesco` package identity, preserving the original project attribution
-- Lossless tabular runtime datasets and reviewable Garda update tooling
-- Opt-in GitHub publication after merge; no runtime API changes
-
-Upstream release history:
-
-v1.1.1 - Province autonome and data updated
-
-- Data update to 2026-08-21
-
-v1.1.0 - Province autonome and data updated
-
-- Data update to 2026-31-01
-- Added getRegioniAndProvinceAutonome and getProvinceAutonome functions
-
-v1.0.0 - Initial Release
-
-- 🎉 First stable release with complete Italian locations data
 
 ## 📄 License
 
